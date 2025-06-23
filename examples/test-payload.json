@@ -1,0 +1,8 @@
+{
+  "markdownContent": "# Test Document\n\nThis is a **test** with *italic* text and [a link](https://example.com).\n\n## Features\n\n- Bullet point 1\n- Bullet point 2\n\n### Code Example\n\n```javascript\nconst test = 'Hello World';\nconsole.log(test);\n```\n\n### Table Example\n\n| Column 1 | Column 2 | Column 3 |\n|----------|----------|----------|\n| Value 1  | Value 2  | Value 3  |\n| Test A   | Test B   | Test C   |\n\n> This is a blockquote to test styling.",
+  "options": {
+    "fileName": "api-test.pdf",
+    "format": "A4",
+    "includePageNumbers": true
+  }
+}
