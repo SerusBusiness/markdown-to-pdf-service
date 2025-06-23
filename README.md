@@ -1,32 +1,173 @@
 # Markdown to PDF Service
 
-A robust, production-ready microservice for converting Markdown content to PDF files. Supports both API and CLI usage with extensive customization options.
+A robust, production-ready **library and microservice** for converting Markdown content to PDF files. Supports both programmatic library usage, API, and CLI with extensive customization options.
 
-## Features
+## 🚀 Installation
 
-- ✅ **High-quality PDF generation** using Puppeteer and Chromium
-- 🔗 **Preserves links** (internal and external references)
-- 🖼️ **Base64 image rendering** support
-- 📄 **Configurable page numbering** with custom styles
-- 🎨 **Custom headers and footers** with HTML templates
-- 📐 **Multiple page formats** (A4, A3, A5, Legal, Letter, Tabloid)
-- 🔄 **Page range selection** (e.g., "1-5", "7", "10-")
-- 🌐 **RESTful API** for online conversion
-- 💻 **CLI tool** for offline/batch processing
-- 🐳 **Docker support** for easy deployment
-- 🔒 **Security-focused** with input sanitization
-- 📊 **Comprehensive logging** with Winston
-- ⚡ **Performance optimized** for production use
-
-## Quick Start
-
-### Using Docker (Recommended)
+### As a Library (NPM Package)
 
 ```bash
-# Clone the repository
+npm install markdown-to-pdf-service
+```
+
+### For Development/Microservice
+
+```bash
 git clone <repository-url>
 cd markdown-to-pdf-service
+npm install
+```
 
+## 📚 Library Usage
+
+### Simple Usage
+
+```javascript
+const { convertMarkdownToPDF } = require('markdown-to-pdf-service');
+
+async function example() {
+  const markdownContent = `
+# Hello World
+
+This is a **simple example** of converting markdown to PDF.
+
+## Features
+- Easy to use
+- High quality output
+- Supports [links](https://example.com)
+  `;
+
+  try {
+    const pdfBuffer = await convertMarkdownToPDF(markdownContent);
+    
+    // Save to file
+    require('fs').writeFileSync('output.pdf', pdfBuffer);
+    console.log('PDF created successfully!');
+  } catch (error) {
+    console.error('Conversion failed:', error);
+  }
+}
+```
+
+### Advanced Usage with Options
+
+```javascript
+const { convertMarkdownToPDF } = require('markdown-to-pdf-service');
+
+async function advancedExample() {
+  const markdownContent = `# Technical Report
+  
+## Executive Summary
+This document demonstrates advanced PDF generation.
+  `;
+
+  const options = {
+    format: 'A4',
+    landscape: false,
+    includePageNumbers: true,
+    headerTemplate: '<div style="text-align: center;">Confidential Report</div>',
+    footerTemplate: '<div style="text-align: center;">Page <span class="pageNumber"></span></div>',
+    margin: {
+      top: '1.5in',
+      right: '1in',
+      bottom: '1.5in',
+      left: '1in'
+    }
+  };
+
+  const pdfBuffer = await convertMarkdownToPDF(markdownContent, options);
+  require('fs').writeFileSync('report.pdf', pdfBuffer);
+}
+```
+
+### Using the Converter Class (for Multiple Conversions)
+
+```javascript
+const { MarkdownToPDFConverter } = require('markdown-to-pdf-service');
+
+async function multipleConversions() {
+  const converter = new MarkdownToPDFConverter();
+  
+  try {
+    // Initialize once for multiple conversions (more efficient)
+    await converter.initialize();
+    
+    const documents = [
+      '# Document 1\n\nContent for first document',
+      '# Document 2\n\nContent for second document',
+      '# Document 3\n\nContent for third document'
+    ];
+    
+    for (let i = 0; i < documents.length; i++) {
+      const pdfBuffer = await converter.convertToPDF(documents[i]);
+      require('fs').writeFileSync(`document-${i + 1}.pdf`, pdfBuffer);
+    }
+    
+    console.log('All documents converted!');
+  } finally {
+    // Always close the converter when done
+    await converter.close();
+  }
+}
+```
+
+### TypeScript Support
+
+```typescript
+import { convertMarkdownToPDF, MarkdownToPDFConverter, ConversionOptions } from 'markdown-to-pdf-service';
+
+async function typescriptExample(): Promise<void> {
+  const options: ConversionOptions = {
+    format: 'A4',
+    landscape: false,
+    includePageNumbers: true
+  };
+
+  const pdfBuffer = await convertMarkdownToPDF('# Hello TypeScript', options);
+  // Handle the PDF buffer...
+}
+```
+
+### API Reference
+
+#### `convertMarkdownToPDF(markdownContent, options?)`
+
+Simple function for one-off conversions.
+
+**Parameters:**
+- `markdownContent` (string): The markdown content to convert
+- `options` (object, optional): Conversion options
+
+**Returns:** `Promise<Buffer>` - PDF buffer
+
+#### `MarkdownToPDFConverter`
+
+Class for managing multiple conversions efficiently.
+
+**Methods:**
+- `initialize()`: Initialize the converter (starts browser)
+- `convertToPDF(markdownContent, options?)`: Convert markdown to PDF
+- `generateHTML(markdownContent, options?)`: Generate HTML only
+- `close()`: Close the converter (stops browser)
+
+#### Conversion Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `fileName` | string | "document.pdf" | Output filename |
+| `format` | string | "A4" | Page format (A4, A3, A5, Legal, Letter, Tabloid) |
+| `landscape` | boolean | false | Landscape orientation |
+| `includePageNumbers` | boolean | true | Include page numbers |
+| `margin` | object | 1in all sides | Page margins |
+| `headerTemplate` | string | "" | HTML template for header |
+| `footerTemplate` | string | default | HTML template for footer |
+| `pages` | string/array | all | Page ranges (e.g., "1-5", ["1", "3"]) |
+
+## 🌐 Microservice API Usage
+
+### Quick Start with Docker
+
+```bash
 # Start the service
 docker-compose up -d
 
@@ -40,19 +181,11 @@ curl -X POST http://localhost:3000/convert \
 ### Local Development
 
 ```bash
-# Install dependencies
 npm install
-
-# Start the service
-npm start
-
-# Or start in development mode with auto-reload
-npm run dev
+npm start  # or npm run dev for development mode
 ```
 
-## API Usage
-
-### Endpoints
+### API Endpoints
 
 - `GET /` - API documentation
 - `GET /health` - Health check
@@ -67,18 +200,11 @@ npm run dev
 curl -X POST http://localhost:3000/convert \
   -H "Content-Type: application/json" \
   -d '{
-    "markdownContent": "# Sample Document\n\nThis is a **test** with [a link](https://example.com).",
+    "markdownContent": "# Sample Document\n\nThis is a **test**.",
     "options": {
       "fileName": "sample.pdf",
       "format": "A4",
-      "includePageNumbers": true,
-      "landscape": false,
-      "margin": {
-        "top": "1in",
-        "right": "1in", 
-        "bottom": "1in",
-        "left": "1in"
-      }
+      "includePageNumbers": true
     }
   }' \
   --output sample.pdf
@@ -92,25 +218,10 @@ curl -X POST http://localhost:3000/convert \
 curl -X POST http://localhost:3000/convert/file \
   -F "markdown=@document.md" \
   -F "format=A4" \
-  -F "landscape=false" \
   --output document.pdf
 ```
 
-### API Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `fileName` | string | "document.pdf" | Output filename |
-| `includePageNumbers` | boolean | true | Include page numbers |
-| `pageNumberStyle` | string | "Arabic" | "Arabic", "Roman", "Alphabetic" |
-| `format` | string | "A4" | "A4", "A3", "A5", "Legal", "Letter", "Tabloid" |
-| `landscape` | boolean | false | Landscape orientation |
-| `margin` | object | 1in all sides | Page margins |
-| `headerTemplate` | string | "" | HTML template for header |
-| `footerTemplate` | string | default | HTML template for footer |
-| `pages` | string/array | all | Page ranges (e.g., "1-5", ["1", "3", "5-7"]) |
-
-## CLI Usage
+## 💻 CLI Usage
 
 ### Installation
 
@@ -135,7 +246,7 @@ md2pdf document.md -o output.pdf
 md2pdf "# Hello World\nThis is **bold** text."
 ```
 
-### Advanced Options
+### Advanced CLI Options
 
 ```bash
 # Custom format and orientation
@@ -149,190 +260,100 @@ md2pdf document.md --margin-top 2in --margin-bottom 2in
 
 # Disable page numbers
 md2pdf document.md --no-page-numbers
-
-# Output to stdout
-md2pdf document.md -o - > output.pdf
-
-# Verbose logging
-md2pdf document.md --verbose
 ```
 
-### CLI Options
+## 🔧 Features
 
-| Option | Description | Example |
-|--------|-------------|---------|
-| `-o, --output <path>` | Output file path | `-o report.pdf` |
-| `-f, --format <format>` | Page format | `--format A3` |
-| `-l, --landscape` | Landscape orientation | `--landscape` |
-| `--no-page-numbers` | Disable page numbers | `--no-page-numbers` |
-| `-p, --pages <pages>` | Page ranges | `--pages "1-5,7"` |
-| `--margin-*` | Set margins | `--margin-top 2in` |
-| `--header <template>` | Header HTML | `--header "<h1>Title</h1>"` |
-| `--footer <template>` | Footer HTML | `--footer "<p>Footer</p>"` |
-| `--verbose` | Verbose logging | `--verbose` |
+- ✅ **High-quality PDF generation** using Puppeteer and Chromium
+- 📚 **Library and API modes** - use as npm package or microservice
+- 🔗 **Preserves links** (internal and external references)
+- 🖼️ **Base64 image rendering** support
+- 📄 **Configurable page numbering** with custom styles
+- 🎨 **Custom headers and footers** with HTML templates
+- 📐 **Multiple page formats** (A4, A3, A5, Legal, Letter, Tabloid)
+- 🔄 **Page range selection** (e.g., "1-5", "7", "10-")
+- 💻 **CLI tool** for offline/batch processing
+- 🐳 **Docker support** for easy deployment
+- 🔒 **Security-focused** with input sanitization
+- 📊 **Comprehensive logging** with Winston
+- ⚡ **Performance optimized** for production use
+- 🟦 **TypeScript support** with type definitions
 
-## Examples
+## 📁 Examples
 
-### Base64 Images
+Run the included examples:
 
-```markdown
-# Document with Image
+```bash
+# Library usage examples
+node examples/library-usage.js
 
-![Logo](data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==)
-
-This image will be properly rendered in the PDF.
+# API testing
+node examples/api-test.js
 ```
 
-### Complex Document
-
-```json
-{
-  "markdownContent": "# Technical Report\n\n## Executive Summary\n\nThis report covers...\n\n### Key Findings\n\n1. **Performance**: 99.9% uptime\n2. **Security**: Zero breaches\n3. **Cost**: 15% reduction\n\n## Detailed Analysis\n\n| Metric | Q1 | Q2 | Q3 | Q4 |\n|--------|----|----|----|----||\n| Revenue | $1M | $1.2M | $1.5M | $1.8M |\n| Users | 10K | 12K | 15K | 18K |\n\n> This is a blockquote with important information.\n\n```javascript\nconst result = await processData();\nconsole.log(result);\n```\n\nFor more information, visit [our website](https://example.com).",
-  "options": {
-    "fileName": "technical-report.pdf",
-    "format": "A4",
-    "includePageNumbers": true,
-    "headerTemplate": "<div style='font-size: 10px; text-align: center; width: 100%;'>Technical Report - Confidential</div>",
-    "footerTemplate": "<div style='font-size: 10px; text-align: center; width: 100%;'>Page <span class='pageNumber'></span> of <span class='totalPages'></span></div>",
-    "margin": {
-      "top": "1.5in",
-      "right": "1in",
-      "bottom": "1.5in", 
-      "left": "1in"
-    }
-  }
-}
-```
-
-## Docker Deployment
-
-### Using Docker Compose
+## 🐳 Docker Deployment
 
 ```bash
 # Production deployment
 docker-compose up -d
 
-# With example testing
-docker-compose --profile testing up
-
-# View logs
-docker-compose logs -f markdown-to-pdf-service
-```
-
-### Manual Docker Build
-
-```bash
-# Build image
+# Build and run manually
 docker build -t markdown-to-pdf-service .
-
-# Run container
-docker run -d \
-  --name markdown-to-pdf \
-  -p 3000:3000 \
-  -e NODE_ENV=production \
-  -e LOG_LEVEL=info \
-  markdown-to-pdf-service
+docker run -p 3000:3000 markdown-to-pdf-service
 ```
 
-### Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | 3000 | Server port |
-| `NODE_ENV` | development | Environment mode |
-| `LOG_LEVEL` | info | Logging level |
-| `ALLOWED_ORIGINS` | * | CORS allowed origins |
-
-## Development
-
-### Setup
+## 🧪 Development
 
 ```bash
-# Clone repository
-git clone <repository-url>
-cd markdown-to-pdf-service
-
 # Install dependencies
 npm install
 
-# Copy environment file
-cp .env.example .env
-
 # Start development server
 npm run dev
+
+# Run tests
+npm test
+
+# Run linting
+npm run lint
 ```
-
-### Scripts
-
-| Script | Description |
-|--------|-------------|
-| `npm start` | Start production server |
-| `npm run dev` | Start development server with auto-reload |
-| `npm run cli` | Run CLI tool |
-| `npm test` | Run tests |
-| `npm run lint` | Run ESLint |
-| `npm run docker:build` | Build Docker image |
-| `npm run docker:run` | Run Docker container |
 
 ### Project Structure
 
 ```
 markdown-to-pdf-service/
+├── index.js            # Main library entry point
+├── index.d.ts          # TypeScript definitions
 ├── src/
 │   ├── cli.js          # CLI application
 │   ├── converter.js    # PDF conversion logic
-│   ├── logger.js       # Winston logging configuration
+│   ├── logger.js       # Winston logging
 │   ├── server.js       # Express API server
-│   └── validation.js   # Input validation schemas
-├── logs/               # Log files (created at runtime)
-├── examples/           # Example files and outputs
-├── Dockerfile          # Container configuration
-├── docker-compose.yml  # Multi-container setup
-├── package.json        # Dependencies and scripts
-├── .env.example        # Environment template
+│   └── validation.js   # Input validation
+├── examples/           # Usage examples
+├── package.json        # NPM configuration
 └── README.md          # This file
 ```
 
-## Performance Considerations
+## 📦 Publishing to NPM
 
-- **Browser Reuse**: The service reuses a single Puppeteer browser instance for efficiency
-- **Memory Management**: Automatic cleanup of browser resources
-- **Concurrent Requests**: Handles multiple simultaneous conversions
-- **File Size Limits**: 10MB limit for input markdown content
-- **Resource Optimization**: Alpine Linux base image for minimal footprint
+To publish this package to NPM:
 
-## Security Features
-
-- **Input Sanitization**: Removes potentially harmful script tags
-- **CORS Configuration**: Configurable origin restrictions
-- **Helmet.js**: Security headers for API endpoints
-- **Non-root User**: Docker container runs as non-privileged user
-- **Rate Limiting**: Ready for rate limiting implementation
-- **Error Handling**: Comprehensive error handling without information leakage
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Puppeteer Installation**: Ensure Chromium dependencies are installed
-2. **Memory Issues**: Increase container memory limits for large documents
-3. **Font Rendering**: Additional fonts may need to be installed in Docker
-4. **Permission Errors**: Check file permissions for output directories
-
-### Debugging
+1. **Update package.json**: Set your repository URLs and author information
+2. **Create NPM account**: Sign up at [npmjs.com](https://npmjs.com)
+3. **Login to NPM**: `npm login`
+4. **Publish**: `npm publish`
 
 ```bash
-# Enable debug logging
-LOG_LEVEL=debug npm start
+# First time publishing
+npm publish
 
-# CLI verbose mode
-md2pdf document.md --verbose
-
-# Check service health
-curl http://localhost:3000/health
+# Publishing updates
+npm version patch  # or minor/major
+npm publish
 ```
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -340,13 +361,16 @@ curl http://localhost:3000/health
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Support
+## 🆘 Support
 
-For issues and questions:
-- Create an issue in the repository
-- Check the troubleshooting section
-- Review the examples for common use cases
+- 📖 Check the [examples](examples/) directory for usage patterns
+- 🐛 Report issues on GitHub
+- 💬 Read the API documentation at `GET /` endpoint when running the service
+
+---
+
+**Made with ❤️ for the developer community**

@@ -1,11 +1,19 @@
 {
   "name": "markdown-to-pdf-service",
   "version": "1.0.0",
-  "description": "A robust microservice for converting Markdown to PDF with API and CLI support",
-  "main": "src/server.js",
+  "description": "A robust library and microservice for converting Markdown to PDF with API and CLI support",
+  "main": "index.js",
+  "types": "index.d.ts",
   "bin": {
     "md2pdf": "./src/cli.js"
   },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
@@ -13,11 +21,32 @@
     "test": "jest",
     "lint": "eslint src/",
     "docker:build": "docker build -t markdown-to-pdf-service .",
-    "docker:run": "docker run -p 3000:3000 markdown-to-pdf-service"
+    "docker:run": "docker run -p 3000:3000 markdown-to-pdf-service",
+    "prepublishOnly": "npm test && npm run lint"
   },
-  "keywords": ["markdown", "pdf", "converter", "microservice", "api", "cli"],
+  "keywords": [
+    "markdown",
+    "pdf",
+    "converter",
+    "library",
+    "microservice",
+    "api",
+    "cli",
+    "puppeteer",
+    "nodejs",
+    "html-to-pdf",
+    "markdown-to-pdf"
+  ],
   "author": "AI Developer",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/markdown-to-pdf-service.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/markdown-to-pdf-service/issues"
+  },
+  "homepage": "https://github.com/your-username/markdown-to-pdf-service#readme",
   "dependencies": {
     "express": "^4.18.2",
     "marked": "^9.1.6",
@@ -36,6 +65,8 @@
     "eslint": "^8.56.0",
     "supertest": "^6.3.3"
   },
+  "peerDependencies": {},
+  "optionalDependencies": {},
   "engines": {
     "node": ">=18.0.0"
   }
